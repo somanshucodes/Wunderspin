@@ -1,0 +1,691 @@
+<html>
+<head>
+	<meta content="text/html; charset=utf-8" http-equiv="Content-Type" />
+	<title>Winning Wheel</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+
+<!-- jQuery library -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+<script data-cfasync='false' type='text/javascript' src='//p208650.clksite.com/adServe/banners?tid=208650_389393_0&type=footer&size=728x90'></script>
+
+<script type="text/javascript">!function(a,b){var c=b.createElement("script");c.src="//p208650.intrev.co/absd.js",(a._sab=a._sab||[]).push(["208650_389393_0","208650"]),b.body.appendChild(c)}(window,document);</script>
+<script data-cfasync='false' type='text/javascript' src='//p208650.clksite.com/adServe/banners?tid=208650_389393_3'></script>
+<script data-cfasync='false' type='text/javascript' src='//p208650.clksite.com/adServe/banners?tid=208650_389393_4'></script>
+<script data-cfasync='false' type='text/javascript' src='//p208650.clksite.com/adServe/banners?tid=208650_389393_5&tagid=2'></script>
+
+
+<script src="https://www.gstatic.com/firebasejs/3.7.1/firebase.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootbox.js/4.4.0/bootbox.min.js"></script>
+<script type="text/javascript">
+
+var login = 0;
+var userId=0;
+var win=0;
+var Spin=0;
+var audio = null;
+var name=null;
+var cute=0;
+var lovable=0;
+var despo=0;
+var butch=0;
+var loser=0;
+var v="";
+var voucher="";
+
+
+var config = {
+    apiKey: "AIzaSyChfUbHipU7scqC3SlNx9krKk7euXFdaq0",
+    authDomain: "wunderspin.firebaseapp.com",
+    databaseURL: "https://wunderspin.firebaseio.com",
+    storageBucket: "wunderspin.appspot.com",
+    messagingSenderId: "1035621352837"
+  };
+
+firebase.initializeApp(config);
+var ref= firebase.database().ref("user/");
+ 
+window.fbAsyncInit = function() {
+    FB.init({
+      appId      : '1390713714314401',
+      cookie     : true,
+      xfbml      : true,
+      version    : 'v2.8'
+    });
+    FB.AppEvents.logPageView();   
+  
+
+FB.getLoginStatus(function(response) {
+  if (response.status === 'connected') {
+     var uid = response.authResponse.userID;
+     var email = response.name;
+     var accessToken = response.authResponse.accessToken;
+     FB.api('/me?fields=id,name,email,permissions', function(response) {
+               name = response.name;
+               userId= response.id;
+               var x= null;
+               var url="http://graph.facebook.com/" + response.id + "/picture?type=square";
+
+              getInfo();
+               
+               
+               bootbox.alert({
+                        message: "Welcome "+name,
+                                     });
+                document.getElementById("profile").setAttribute("src", "http://graph.facebook.com/" + response.id + "/picture?type=normal");
+              
+                
+                console.log(response);
+                firebase.database().ref('user/').once("value", function(snapshot) {
+                    if (!snapshot.hasChild(response.id)) {
+                     console.log("not exist");
+             writeUserData(response.id,response.name,response.email, "http://graph.facebook.com/" + response.id + "/picture?type=normal");
+             writeLeaderboardData(response.id, response.name, "http://graph.facebook.com/" + response.id + "/picture?type=normal" );
+        }
+        else {
+           firebase.database().ref("user/"+response.id).once('value', function(snapshot) {
+    snapshot.forEach(function(childSnapshot) {
+      console.log(childSnapshot.val().name);
+     Spin = childSnapshot.val().spin;
+     win = childSnapshot.val().win;
+    });
+});
+           // alert("That user already exists");
+
+
+        }
+                });
+
+
+    if(x===null){ 
+                console.log(response.id+" "+response.name+" "+response.email); var v=""; var c=0;
+                  
+               
+
+        firebase.database().ref('leaderboard/').orderByChild('spin').limitToLast(3).once('value', function (snapshot) {
+           c=0;
+           snapshot.forEach(function(data) {
+    var tmp = data.val();  var obj = tmp; console.log(tmp);
+      v="<img src=\""+tmp['photo']+"\" class=\"img-circle\" width=\"60\" height=\"60\"><b>Name:</b> "+tmp['name']+" | <b>Spins:</b> "+tmp['spin']+"</b></br>"+v;
+
+      document.getElementById("leaderboard").innerHTML=v;
+  });
+        });
+    }
+
+                
+                
+});
+}
+
+
+  else {
+bootbox.alert({message:"Redirecting you to Login Page!",});
+    window.location.replace("http://wundersp.in/game/login.html");
+
+
+    // the user isn't logged in to Facebook.
+  }
+ });
+
+
+
+
+};
+
+  (function(d, s, id){
+     var js, fjs = d.getElementsByTagName(s)[0];
+     if (d.getElementById(id)) {return;}
+     js = d.createElement(s); js.id = id;
+     js.src = "//connect.facebook.net/en_US/sdk.js";
+     fjs.parentNode.insertBefore(js, fjs);
+   }(document, 'script', 'facebook-jssdk'));
+
+function writeUserData(userId, name, email, imageUrl) {
+   var s=0;
+  if(!email) { email = ""; console.log("email is not defined"); } if( !imageUrl) { imageUrl ="";}
+  firebase.database().ref('user/'+userId).push().setWithPriority({
+   id: userId,
+   mail: email,
+  name: name,
+  photo: imageUrl,
+  win: 0,
+  spin: s,
+  loser: 0,
+  lovable: 0,
+  butch: 0,
+  despo: 0,
+  cute: 0,
+  voucher: ""
+  }, s);
+}
+
+function update(){
+ document.getElementById("name").textContent=name+ "\'s Stats!";
+               document.getElementById("info").innerHTML="<b>No. of times you spun the wheel:</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<i>"+Spin+"</i>";
+}
+
+function getInfo(){
+
+firebase.database().ref("user/"+userId).once('value', function(snapshot) {
+    snapshot.forEach(function(childSnapshot) {
+      console.log(childSnapshot.val().cute+" CUTE");
+     Spin = childSnapshot.val().spin;
+     win = childSnapshot.val().win;
+     cute = childSnapshot.val().cute;
+     despo = childSnapshot.val().despo;
+     lovable = childSnapshot.val().lovable;
+     butch = childSnapshot.val().butch;
+     loser = childSnapshot.val().loser;
+     voucher = childSnapshot.val().voucher;
+    });
+});
+
+}
+
+function writeLeaderboardData(userId, name,photo){
+firebase.database().ref("leaderboard/"+userId).set({ 
+name: name,
+win: 0,
+spin: 0,
+photo: photo,
+loser: 0,
+lovable: 0,
+butch: 0,
+despo: 0,
+cute: 0
+
+    
+});
+}
+
+function showStat(){
+getInfo();
+bootbox.alert({title:"Your statistics",message:"Spins : "+Spin+"</br>Wins : "+win+"</br>Lovable TAG : "+lovable,});
+}
+
+function showLovable(){ v=""; document.getElementById("leaderboard").innerHTML="";
+firebase.database().ref('leaderboard/').orderByChild('lovable').limitToLast(30).once('value', function (snapshot) {
+           c=0;
+           snapshot.forEach(function(data) {
+    var tmp = data.val();  var obj = tmp; console.log(tmp);
+      v="<img src=\""+tmp['photo']+"\" class=\"img-circle\" width=\"60\" height=\"60\"><b>Name:</b> "+tmp['name']+" | <b>No. of times loved: </b> "+tmp['lovable']+"</b></br>"+v;
+
+      document.getElementById("leaderboard").innerHTML=v;
+  });
+        });
+
+}
+function showWinner(){
+v="";document.getElementById("leaderboard").innerHTML="";
+firebase.database().ref('leaderboard/').orderByChild('win').limitToLast(30).once('value', function (snapshot) {
+           c=0;
+           snapshot.forEach(function(data) {
+    var tmp = data.val();  var obj = tmp; console.log(tmp);
+      v="<img src=\""+tmp['photo']+"\" class=\"img-circle\" width=\"60\" height=\"60\"><b>Name:</b> "+tmp['name']+" | <b>Wins: </b> "+tmp['win']+"</b></br>"+v;
+
+      document.getElementById("leaderboard").innerHTML=v;
+  });
+        });
+}
+
+function showDespo(){ 
+v="";document.getElementById("leaderboard").innerHTML="";
+firebase.database().ref('leaderboard/').orderByChild('despo').limitToLast(30).once('value', function (snapshot) {
+           c=0;
+           snapshot.forEach(function(data) {
+    var tmp = data.val();  var obj = tmp; console.log(tmp);
+      v="<img src=\""+tmp['photo']+"\" class=\"img-circle\" width=\"60\" height=\"60\"><b>Name:</b> "+tmp['name']+" | <b>Despo-number: </b> "+tmp['despo']+"</b></br>"+v;
+
+      document.getElementById("leaderboard").innerHTML=v;
+  });
+        });
+}
+
+function showCute(){ v="";
+document.getElementById("leaderboard").innerHTML="";
+firebase.database().ref('leaderboard/').orderByChild('cute').limitToLast(30).once('value', function (snapshot) {
+           c=0;
+           snapshot.forEach(function(data) {
+    var tmp = data.val();  var obj = tmp; console.log(tmp);
+      v="<img src=\""+tmp['photo']+"\" class=\"img-circle\" width=\"60\" height=\"60\"><b>Name:</b> "+tmp['name']+" | <b>Cuteness Level:</b> "+tmp['cute']+"</b></br>"+v;
+
+      document.getElementById("leaderboard").innerHTML=v;
+  });
+        });
+}
+
+function showLoser(){ v="";
+document.getElementById("leaderboard").innerHTML="";
+firebase.database().ref('leaderboard/').orderByChild('loser').limitToLast(30).once('value', function (snapshot) {
+           c=0;
+           snapshot.forEach(function(data) {
+    var tmp = data.val();  var obj = tmp; console.log(tmp);
+      v="<img src=\""+tmp['photo']+"\" class=\"img-circle\" width=\"60\" height=\"60\"><b>Name:</b> "+tmp['name']+" | <b>Losses: </b> "+tmp['loser']+"</b></br>"+v;
+
+      document.getElementById("leaderboard").innerHTML=v;
+  });
+        });
+}
+
+function getVoucher(){
+
+getInfo();
+if(Spin === 1)
+{
+voucher = "DEV10,"+voucher;
+bootbox.alert({title:'First voucher!', message:'Your code is <b>DEV10</b>. Use this code to enjoy 10% of on a minimum order of 300. The order can be placed physically or via call. Further details are on our page.</br><b>Address: </b>Dev\'s Restaurant and Bar, TOT Mall, Sector 62. </br><h5>Tell your code and your name to the vendor for verification.</h5>'});
+firebase.database().ref("user/").child(userId).orderByChild("id").equalTo(userId).on("child_added", function(snapshot) {
+    snapshot.ref.update({"voucher":voucher});
+});
+}
+
+if(Spin === 8)
+{
+voucher = "SARDARG10,"+voucher;
+bootbox.alert({title:'Second voucher incoming!', message:'Your code is <b>SARDARG10</b>Use this code to enjoy 10% of on a minimum order of 200. Contact details are found on our facebook page.</br><b>Address:</b>SardarG Restaurant, near SRS Jaipuria, Indirapuram.</br><h5>Tell your code and your name to the vendor for verification.</h5>'});
+firebase.database().ref("user/").child(userId).orderByChild("id").equalTo(userId).on("child_added", function(snapshot) {
+    snapshot.ref.update({"voucher":voucher});
+});
+}
+
+if(Spin === 16){
+voucher = "DEV1PLUS1,"+voucher;
+bootbox.alert({title:'Voucher coming in HAWT!', message:'Order a drink and get one drink free! *NO CHARGES* Use code: <b>DEV1PLUS1</b></br><b>Address: </b>Dev\'s Restaurant and Bar, TOT Mall, Sector 62. </br><h5>Tell your code and your name to the vendor for verification.</h5>'});
+firebase.database().ref("user/").child(userId).orderByChild("id").equalTo(userId).on("child_added", function(snapshot) {
+    snapshot.ref.update({"voucher":voucher});
+});
+}
+if(Spin === 30){
+voucher = "SPIZE15,"+voucher;
+bootbox.alert({title:'Aaj toh peth bhar hi jaaega', message:'Get 15% off at SPIZE Barbeque! Use code: <b>SPIZE15</b></br><b>Address:</b>Spize Barbeque, Sector 63, Noida</b></br><h5>Tell your code and your name to the vendor for verification. Call +91 9990773984. Minimum order 200 Rs.</h5>'});
+firebase.database().ref("user/").child(userId).orderByChild("id").equalTo(userId).on("child_added", function(snapshot) {
+    snapshot.ref.update({"voucher":voucher});
+});
+}
+
+if(Spin === 45){
+voucher = "SARDARG15,"+voucher;
+bootbox.alert({title:'Aaj mess mei mat khana', message:'Get 15% off on all range of dishes at SardarG restaurant. Use code <b>SARDARG15</b></br><b>Address:</b> SardarG Restaurant, near SRS Jaipuria, Indirapuram.</br><h5>Tell your code and your name to the vendor for verification.</h5>'});
+firebase.database().ref("user/").child(userId).orderByChild("id").equalTo(userId).on("child_added", function(snapshot) {
+    snapshot.ref.update({"voucher":voucher});
+});
+}
+
+if(Spin === 60){
+voucher = "SPIZE20,"+voucher
+bootbox.alert({title:'Aree Ram, Aree Arjun..', message:'Get 20% off at SPIZE Barbeque! Use code:<b>SPIZE20</b></br><b>Address:</b>Spize Barbeque, Sector 63, Noida</b></br><h5>Tell your code and your name to the vendor for verification. Call +91 9990773984. Minimum order 200 Rs.</h5>'});
+
+}
+}
+function showCoupon(){
+getInfo();
+var x=""; var txt="";
+firebase.database().ref("user/"+userId).once('value', function(snapshot) {
+    snapshot.forEach(function(childSnapshot) {
+      x=childSnapshot.val().voucher.split(",");
+      console.log(x);
+     
+    });
+var j=1;
+for(var i=0; i<x.length; i++){
+txt = "<b>Voucher #"+j+":</b>"+x[i]+" "+txt;
+console.log(txt);
+j++;
+}
+txt=txt+"</br>For any query related to your coupons, feel free to ask us on our facebook page. Made by people of JSS, for people of JSS.";
+bootbox.alert({title:'Vouchers', message: txt});
+});
+
+
+console.log(txt);
+}
+</script>
+
+<!-- Latest compiled JavaScript -->
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="http://wundersp.in/game/Winwheel.js"></script><script src="http://cdnjs.cloudflare.com/ajax/libs/gsap/latest/TweenMax.min.js"></script>
+<style>
+.bg-1{ background-color: black; /* Green */
+      color: #ffffff;}
+img{margin:2px 2px 2px 2px;}
+canvas{padding:10px;}
+	  
+.margin{margin-right:0px;}
+.left-margin{ margin-left:0px; float:left;}
+
+.label{padding:10px;font-size:24px;}
+#home{padding:10px;}
+#name{font-size:24px;}
+	  
+#info{padding:5px;}	  
+
+.pad{padding:25px;}
+#canvasContainer {
+    position: relative;
+    width: 300px;
+}
+ 
+#canvasContainer {
+    z-index: 1;
+    margin:3px 3px 3px 3px;
+}
+ 
+#prizePointer {
+    position: absolute;
+    left: 132px;
+    top: -3px;
+    z-index: 999;
+    width:60px;
+    height:60px;
+}
+
+#box{
+text-align:center;
+background:black;
+color:white;
+height:120px;
+padding:10px;
+}
+</style>
+	</head>
+<body>
+<nav class="navbar navbar-inverse">
+  <div class="container-fluid">
+    <div class="navbar-header">
+<button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#myNavbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span> 
+      </button>
+      <a class="navbar-brand" href="#">WunderSPIN</a>
+    </div>
+<div class="collapse navbar-collapse" id="myNavbar">
+    <ul class="nav navbar-nav">
+      <li class="active"><a href="#">Home</a></li>
+      <li><a href="#">Leaderboard</a></li>
+      <li><a href="#">For Businesses</a></li>
+    </ul>
+    <ul class="nav navbar-nav navbar-right">
+      <li><a href="#"><span class="glyphicon glyphicon-user"></span> Sign Up</a></li>
+      <li><a href="#"><span class="glyphicon glyphicon-log-in"></span> Login</a></li>
+    </ul>
+  </div>
+</div>
+</nav>
+<div class="container">
+<div class="col-sm-2 left-margin">
+<img src="https://www.watsonmartin.com/wp-content/uploads/2016/03/default-profile-picture.jpg" class="img-circle left-margin" width="72" height="72" id="profile">
+<img src="http://wundersp.in/game/bar-chart.png" class="img-circle" width="72" height="72" onclick="showStat();">
+<img src="like.png" height="72" width="72" onclick="showLike();">
+<img src="coupon.png" height="72" width="72" onclick="showCoupon();">
+</div>
+</div>
+
+</br>
+
+<ul class="nav nav-tabs">
+    <li class="active"><a data-toggle="tab" href="#home">PLAY</a></li>
+    <li><a data-toggle="tab" href="#menu1">RULES</a></li>
+    <li><a data-toggle="tab" href="#menu2">LEADERBOARD</a></li>
+    <li><a data-toggle="tab" href="#menu3">CASH</a></li>
+  </ul>
+
+  <div class="tab-content">
+    <div id="home" class="tab-pane fade in active">
+      
+     <div id="canvasContainer"> <p style="{color: white}"><canvas height="300" id="canvas" width="300" align="center">Sorry, your browser doesn&#39;t support canvas. Please try another.</canvas><div id="prizePointer"><img src="arrow.png" width="60" height="60"></div></p></div>
+			<div class="btn-group center">
+  <button type="button" class="btn btn-success" onclick="powerSelected(1);">LOW</button>
+  <button type="button" class="btn btn-warning" onclick="powerSelected(2);">MEDIUM</button>
+  <button type="button" class="btn btn-danger" onclick="powerSelected(3);">HIGH</button>
+</div>
+
+			<button type="button" class=" btn btn-default"  onclick="startSpin();">SPIN TO WIN</button>
+<br />
+
+			
+    </div>
+    <div id="menu1" class="tab-pane fade">
+      <h3 id="name text-center">Terms and Conditions</h3>
+      <div id="info">You've heard this story before, right? "Spin the wheel, and win a MacBook Pro!". WE all have grown tired of these false campaigns wasting our time. Instead, we have created a platform where users do get rewarded for spinning the wheels, and with no real effort required. At the start of this event, you stand a chance to win a 5.1 Speaker, a Bluetooth speaker and five of you will win ruppees 200 in your PayTM wallet. But you must play by the rules:</br>
+<h5>RULES:</h5>
+<ol>
+<li>As is the case with most games, the person to conquer the game maximum times is our winner. To keep the process transparent, a leaderboard will be maintained.</li>
+<li>The game is open for all to play, but to be eligible to win the prize, you must have liked our Facebook page and our sponsor's facebook pages. The links to them can be found here. ALL THE PAGES MUST BE LIKED. The winner must have liked the pages, if not, then the runner up will be rewarded.</li>
+<li>
+<li>Titles are added in jest. We expect you take it with a pinch of salt and move on because nothing really changes, Bruce.</li>
+<li>5 persons will win the PayTM contest. The details can be found on the next tab.</li>
+</div>
+    </div>
+    <div id="menu2" class="tab-pane fade">
+      <h3>Leaderboard</h3>
+      <button class="btn btn-primary" onclick="showWinner();">Winner</button><button class="btn btn-primary" onclick="showLoser();">Loser</button><button class="btn btn-primary" onclick="showCute();">Cute</button><button class="btn btn-primary" onclick="showLovable();">Lovable</button><button class="btn btn-primary" onclick="showDespo();">Despo</button>
+      <p id="leaderboard">..</p>
+    </div>
+    <div id="menu3" class="tab-pane fade">
+      <h3>5 Lucky people will win 200 PAYTM Cash!</h3>
+      <p>Q. What should we do to win 200 PAYTM cash?</br>A. The steps are as follows:</br><ol><li>Like and share our page.</li><li>On our facebook page, comment "#WunderSPIN" and tag as many of your friends as you can. You have to tag them in the comment section as well.</li><li>Top 5 people who've tagged the most people will win.</li><li>A single person can also win 1000 PAYTM cash if he tags a high amount of users.</li><li>As is the case with our game, to be eligible to win, you must have liked our sponsor's facebook page. Details can be found on our facebook page.</li></ol></p>
+    </div>
+  </div>
+
+<div id="box">
+
+&copy; Wunderspin 2017-2018. Made with love.
+
+</div>			
+</div>
+</div>
+			
+		
+<script>
+            // Create new wheel object specifying the parameters at creation time.
+            var theWheel = new Winwheel({
+                'numSegments'  : 6,     // Specify number of segments.
+                'outerRadius'  : 150,   // Set outer radius so wheel fits inside the background.
+                'textFontSize' : 20,    // Set font size as desired.
+                'rotationAngle': -30,
+                'textAlignment'  : 'outer',
+                'textMargin'   : 15,   
+                'textOrientation' : 'curved' ,
+                'segments'     :        // Define segments including colour and text.
+                [
+                   {'fillStyle' : '#40bf80 ', 'text' : 'PRIZE','fontFamily' : 'Georgia'},
+                   {'fillStyle' : '#9900ff ', 'text' : 'CUTE','fontFamily' : 'Georgia'},
+                   {'fillStyle' : '#ff9900 ', 'text' : 'LOSER','fontFamily' : 'Georgia'},
+                   {'fillStyle' : '#ff33cc', 'text' : 'B**CH','fontFamily' : 'Georgia'},
+                   {'fillStyle' : '#800080 ', 'text' : 'DESPO','fontFamily' : 'Georgia'},
+                   {'fillStyle' : '#33ccff ', 'text' : 'LOVABLE','fontFamily' : 'Georgia'}
+                ],
+                'animation' :           // Specify the animation to use.
+                {
+                    'type'     : 'spinToStop',
+                    'duration' : 5,     // Duration in seconds.
+                    'spins'    : 6,     // Number of complete spins.
+                    'callbackFinished' : 'alertPrize()'
+                }
+            });
+            
+            // Vars used by the code in this page to do power controls.
+            var wheelPower    = 10;
+            var wheelSpinning = false;
+            
+            // -------------------------------------------------------
+            // Function to handle the onClick on the power buttons.
+            // -------------------------------------------------------
+            function powerSelected(powerLevel)
+            {
+                // Ensure that power can't be changed while wheel is spinning.
+                if (wheelSpinning == false)
+                {
+                   
+                    
+                    
+                    // Set wheelPower var used when spin button is clicked.
+                    wheelPower = powerLevel;
+                    
+                    // Light up the spin button by changing it's source image and adding a clickable class to it.
+                    
+                }
+            }
+            
+            // -------------------------------------------------------
+            // Click handler for spin button.
+            // -------------------------------------------------------
+            function startSpin()
+            {
+                // Ensure that spinning can't be clicked again while already running.
+                               
+                if (wheelSpinning == false)
+                {
+                    
+                    // Based on the power level selected adjust the number of spins for the wheel, the more times is has
+                    // to rotate with the duration of the animation the quicker the wheel spins.
+                    if (wheelPower == 1)
+                    {
+                        theWheel.animation.spins = 3;
+                    }
+                    else if (wheelPower == 2)
+                    {
+                        theWheel.animation.spins = 8;
+                    }
+                    else if (wheelPower == 3)
+                    {
+                        theWheel.animation.spins = 15;
+                    }
+                    
+                    
+                    // Begin the spin animation by calling startAnimation on the wheel object.
+                    theWheel.startAnimation();
+                    
+                    // Set to true so that power can't be changed and spin button re-enabled during
+                    // the current animation. The user will have to reset before spinning again.
+                   
+                    
+                    wheelSpinning = true;
+                }
+            }
+            
+            // -------------------------------------------------------
+            // Function for reset button.
+            // -------------------------------------------------------
+            function resetWheel()
+            {
+                theWheel.stopAnimation(false);  // Stop the animation, false as param so does not call callback function.
+                theWheel.rotationAngle = 0;     // Re-set the wheel angle to 0 degrees.
+                theWheel.draw();                // Call draw to render changes to the wheel.
+                
+                
+                
+                wheelSpinning = false;          // Reset to false to power buttons and spin can be clicked again.
+            }
+            
+            // -------------------------------------------------------
+            // Called when the spin animation has finished by the callback feature of the wheel because I specified callback in the parameters.
+            // -------------------------------------------------------
+            function alertPrize()
+            {
+
+                
+getInfo();                    
+console.log(Spin); Spin = Spin+1;
+                    firebase.database().ref('user/').child(userId).orderByChild("id").equalTo(userId).on("child_added", function(snapshot) {
+    snapshot.ref.update({"spin":Spin});
+});
+
+firebase.database().ref("leaderboard/"+userId+"/spin").set(Spin);
+       
+                   
+                // Get the segment indicated by the pointer on the wheel background which is at 0 degrees.
+                var winningSegment = theWheel.getIndicatedSegment();
+                var won = winningSegment.text;
+                
+               switch(won){
+ 
+                case "CUTE":
+cute=cute+1;
+                    bootbox.alert({title:'BATMAN SAYS YOU\'RE CUTE!', message:'<button class=\"btn btn-primary\" onclick=\"playSong(1);\">Play Song</button><button class=\"btn btn-primary\" onclick=\"pauseSong(1);\">Pause Song</button></br>We all know it, and have accepted it. If you like this game, do share it on your facebook profile!'}); 
+firebase.database().ref("leaderboard/"+userId+"/cute").set(cute); 
+firebase.database().ref("user/").child(userId).orderByChild("id").equalTo(userId).on("child_added", function(snapshot) {
+    snapshot.ref.update({"cute":cute});
+});
+
+break;
+
+                case "PRIZE": 
+win=win+1;
+                    bootbox.alert({title:'You WON!', message:'You are on the highway to hell! One step closer to winning the award.</br> <button class=\"btn btn-primary\" onclick=\"playSong(2);\">Play Song</button><button class=\"btn btn-primary\" onclick=\"pauseSong(2);\">Pause Song</button></br>'});
+firebase.database().ref("leaderboard/"+userId+"/win").set(win); 
+firebase.database().ref("user/").child(userId).orderByChild("id").equalTo(userId).on("child_added", function(snapshot) {
+    snapshot.ref.update({"win":win});
+});                    
+break;
+
+                case "B**CH":
+butch = butch +1;
+                   bootbox.alert({title:'What\'s up, B**TCH?', message:'<button class=\"btn btn-primary\" onclick=\"playSong(4);\">Play Song</button><button class=\"btn btn-primary\" onclick=\"pauseSong(2);\">Pause Song</button></br>This is honestly awkward.'}); 
+firebase.database().ref("leaderboard/"+userId+"/butch").set(butch);
+firebase.database().ref("user/").child(userId).orderByChild("id").equalTo(userId).on("child_added", function(snapshot) {
+    snapshot.ref.update({"butch":butch});
+});
+
+break;
+
+                case "DESPO":
+despo=despo+1;
+                   bootbox.alert({title:'....SO DESPO.....', message:'<button class=\"btn btn-primary\" onclick=\"playSong(4);\">Play Song</button><button class=\"btn btn-primary\" onclick=\"pauseSong(4);\">Pause Song</button></br>Here you are now, hoping that wheel could also stopped on B**TCH.'}); 
+firebase.database().ref("leaderboard/"+userId+"/despo").set(despo);
+firebase.database().ref("user/").child(userId).orderByChild("id").equalTo(userId).on("child_added", function(snapshot) {
+    snapshot.ref.update({"despo":despo});
+}); 
+break;
+                case "LOVABLE":
+lovable=lovable+1;
+                    bootbox.alert({title:'You \'re lovable.', message:'.... <button class=\"btn btn-primary\" onclick=\"playSong(5);\">Play Song</button><button class=\"btn btn-primary\" onclick=\"pauseSong(5);\">Pause Song</button>... It is true!'});
+firebase.database().ref("leaderboard/"+userId+"/lovable").set(lovable);
+firebase.database().ref("user/").child(userId).orderByChild("id").equalTo(userId).on("child_added", function(snapshot) {
+    snapshot.ref.update({"lovable":lovable});
+});
+
+ break;
+
+                case "LOSER":
+loser=loser+1;
+                     bootbox.alert({title:'True victory lies in failure...of your enemies. You lose.', message:'<button class=\"btn btn-primary\" onclick=\"playSong(6);\">Play Song</button><button class=\"btn btn-primary\" onclick=\"pauseSong(4);\">Pause Song</button></br>Take everything with a pinch of salt. Namak aukaataunsar.'}); 
+firebase.database().ref("leaderboard/"+userId+"/loser").set(loser);
+firebase.database().ref("user/").child(userId).orderByChild("id").equalTo(userId).on("child_added", function(snapshot) {
+    snapshot.ref.update({"loser":loser});
+});
+break;
+
+               }
+
+                
+                // Do basic alert of the segment text. You would probably want to do something more interesting with this information.
+                wheelSpinning=false;
+                  //BootstrapDialog.alert('I want banana!'+winningSegment.text);
+                   
+                 resetWheel();
+                 getVoucher();
+
+                 
+                
+            }
+
+function playSong(x){
+switch(x){
+case 1: audio = new Audio('cute.mp3'); audio.play(); break;
+case 2: audio = new Audio('winner.mp3'); audio.play(); break;
+case 3: audio = new Audio('butch.mp3'); audio.play(); break;
+case 4: audio = new Audio('despo.mp3'); audio.play(); break;
+case 5: audio = new Audio('lovable.mp3'); audio.play(); break;
+case 6: audio = new Audio('loser.mp3'); audio.play(); break;
+}
+}
+function pauseSong(x){
+audio.pause();
+}
+        </script>
+</body>
+</html>
